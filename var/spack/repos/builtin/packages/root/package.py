@@ -82,6 +82,9 @@ class Root(CMakePackage):
     # https://github.com/root-project/ROOT/commit/e0ae0483985d90a71a6cabd10d3622dfd1c15611.
     patch('root7-webgui.patch', level=1, when='@6.16.00')
 
+    # temporary patch for builtin libafterimage
+    patch('asimage.patch', level=1)
+
     if sys.platform == 'darwin':
         # Resolve non-standard use of uint, _cf_
         # https://sft.its.cern.ch/jira/browse/ROOT-7886.

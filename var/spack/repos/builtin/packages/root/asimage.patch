@@ -1,0 +1,10 @@
+--- graf2d/asimage/src/libAfterImage/export.c	2022-07-21 14:42:37.000000000 +0200
++++ graf2d/asimage/src/libAfterImage/export.c	2022-07-21 14:42:57.000000000 +0200
+@@ -113,6 +113,7 @@
+ #include "export.h"
+ #include "ascmap.h"
+ //#include "bmp.h"
++#include <stdlib.h>
+ 
+ #ifdef jmpbuf
+ #undef jmpbuf
