@@ -160,6 +160,11 @@ class Root(CMakePackage):
     variant("mysql", default=False)
     variant("opengl", default=True, description="Enable OpenGL support")
     variant("oracle", default=False, description="Enable support for Oracle databases")
+    variant(
+        "plugin_path",
+        default=False,
+        description="Allow setting of dynamic/plugin path through environment variables",
+    )
     variant("postgres", default=False, description="Enable postgres support")
     variant("pythia6", default=False, description="Enable pythia6 support")
     variant("pythia8", default=False, description="Enable pythia8 support")
@@ -431,6 +436,21 @@ class Root(CMakePackage):
         _add_variant(v, f, "xrootd", "+xrootd")
         return " ".join(v)
 
+    def patch(self):
+        if self.spec.variants["plugin_path"]:
+            # add ROOT_PLUGIN_PATH for plugin discovery
+            filter_file(
+                r"^#(Unix\.\*\.Root\.PluginPath).*",
+                r"\1: $(ROOT_PLUGIN_PATH):@plugindir@",
+                "config/rootrc.in",
+            )
+            # add ROOT_DYN_PATH for dynamic library discovery
+            filter_file(
+                r"^#(Unix\.\*\.Root\.DynamicPath).*",
+                r"\1: .:$(ROOT_DYN_PATH):@libdir@",
+                "config/rootrc.in",
+            )
+
     def cmake_args(self):
         spec = self.spec
         define = self.define
@@ -652,6 +672,8 @@ class Root(CMakePackage):
         # the following vars are copied from thisroot.sh; silence a cppyy warning
         env.set("CLING_STANDARD_PCH", "none")
         env.set("CPPYY_API_PATH", "none")
+        if self.spec.variants["plugin_path"]:
+            env.prepend_path("ROOT_DYN_PATH", self.prefix.lib)
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.set("ROOTSYS", self.prefix)
@@ -665,6 +687,8 @@ class Root(CMakePackage):
         if "platform=darwin" in self.spec:
             # Newer deployment targets cause fatal errors in rootcling
             env.unset("MACOSX_DEPLOYMENT_TARGET")
+        if self.spec.variants["plugin_path"]:
+            env.prepend_path("ROOT_DYN_PATH", self.prefix.lib)
 
     def setup_dependent_run_environment(self, env, dependent_spec):
         env.set("ROOTSYS", self.prefix)
@@ -674,3 +698,5 @@ class Root(CMakePackage):
         env.prepend_path("ROOT_INCLUDE_PATH", dependent_spec.prefix.include)
         if "+rpath" not in self.spec:
             env.prepend_path("LD_LIBRARY_PATH", self.prefix.lib.root)
+        if self.spec.variants["plugin_path"]:
+            env.prepend_path("ROOT_DYN_PATH", self.prefix.lib)
