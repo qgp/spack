@@ -17,6 +17,7 @@ class Xrootd(CMakePackage):
 
     maintainers("gartung", "greenc-FNAL", "marcmengel", "vitodb", "wdconinc")
 
+    version("5.6.0", sha256="cda0d32d29f94220be9b6627a80386eb33fac2dcc25c8104569eaa4ea3563009")
     version("5.5.5", sha256="0710caae527082e73d3bf8f9d1dffe95808afd3fcaaaa15ab0b937b8b226bc1f")
     version("5.5.4", sha256="41a8557ea2d118b1950282b17abea9230b252aa5ee1a5959173e2534b7d611d3")
     version("5.5.3", sha256="703829c2460204bd3c7ba8eaa23911c3c9a310f6d436211ba0af487ef7f6a980")
@@ -113,6 +114,7 @@ class Xrootd(CMakePackage):
     depends_on("openssl")
     depends_on("python", when="+python")
     depends_on("py-setuptools", type="build", when="+python")
+    depends_on("py-pip", type="build", when="+python @5.6:")
     depends_on("readline", when="+readline")
     depends_on("xz")
     depends_on("zlib")

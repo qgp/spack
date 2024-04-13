@@ -2868,6 +2868,7 @@ class Spec(object):
             # compatibility across repositories as possible.
             if s.namespace is None:
                 s.namespace = spack.repo.path.repo_for_pkg(s.name).namespace
+                print('changed namespace for package {s.name} to {s.namespace}')
 
             if s.concrete:
                 continue
@@ -2967,12 +2968,17 @@ class Spec(object):
                     f"Spec {node} has no name; cannot concretize an anonymous spec"
                 )
 
+        print(node.name, node.namespace)
         if self._concrete:
             return
 
         solver = spack.solver.asp.Solver()
+        print('before solve', self.name, self.namespace, [self])
+        for s in [self]:
+            print(s.name, s.namespace)
         result = solver.solve([self], tests=tests)
         result.raise_if_unsat()
+        print(result.answers)
 
         # take the best answer
         opt, i, answer = min(result.answers)
@@ -2985,6 +2991,7 @@ class Spec(object):
         assert name in answer
 
         concretized = answer[name]
+        print(4, answer[name])
         self._dup(concretized)
 
     def concretize(self, tests=False):

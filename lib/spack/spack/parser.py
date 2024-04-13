@@ -338,6 +338,7 @@ class SpecNodeParser:
             namespace = ".".join(parts[:-1])
             initial_spec.name = name
             initial_spec.namespace = namespace
+            print(2, initial_spec.namespace)
         elif self.ctx.accept(TokenType.FILENAME):
             return FileParser(self.ctx).parse(initial_spec)
 
@@ -409,6 +410,8 @@ class SpecNodeParser:
             else:
                 break
 
+        if initial_spec.namespace:
+            print(3, initial_spec.namespace)
         return initial_spec
 
     def hash_not_parsed_or_raise(self, spec, addition):

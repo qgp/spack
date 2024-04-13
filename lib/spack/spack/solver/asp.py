@@ -503,6 +503,7 @@ class Result(object):
         return self._concrete_specs_by_input
 
     def _compute_specs_from_answer_set(self):
+        print('compute')
         if not self.satisfiable:
             self._concrete_specs = []
             self._unsolved_specs = self.abstract_specs
@@ -521,6 +522,7 @@ class Result(object):
             candidate = answer.get(key)
 
             if candidate and candidate.satisfies(input_spec):
+                print(f'found {answer[key]} for {input_spec.name} in {input_spec.namespace}')
                 self._concrete_specs.append(answer[key])
                 self._concrete_specs_by_input[input_spec] = answer[key]
             else:
@@ -728,6 +730,8 @@ class PyclingoDriver(object):
             A tuple of the solve result, the timer for the different phases of the
             solve, and the internal statistics from clingo.
         """
+        for s in specs:
+            print('pyclingo solve for', s.name, s.namespace)
         output = output or DEFAULT_OUTPUT_CONFIGURATION
         # allow solve method to override the output stream
         if output.out is not None:
@@ -783,6 +787,9 @@ class PyclingoDriver(object):
         self.control.ground([("base", [])])
         timer.stop("ground")
 
+        for s in specs:
+            print('now', s.name, s.namespace)
+
         # With a grounded program, we can run the solve.
         result = Result(specs)
         models = []  # stable models if things go well
@@ -807,6 +814,9 @@ class PyclingoDriver(object):
         # once done, construct the solve result
         result.satisfiable = solve_result.satisfiable
 
+        for s in specs:
+            print('and now', s.name, s.namespace)
+
         if result.satisfiable:
             # get the best model
             builder = SpecBuilder(specs, hash_lookup=setup.reusable_and_possible)
@@ -818,6 +828,8 @@ class PyclingoDriver(object):
 
             # build specs from spec attributes in the model
             spec_attrs = [(name, tuple(rest)) for name, *rest in extract_args(best_model, "attr")]
+            for s in spec_attrs:
+                print('attr', s)
             answers = builder.build_specs(spec_attrs)
 
             # add best spec to the results
@@ -2187,6 +2199,8 @@ class SpackSolverSetup(object):
         """
         self._condition_id_counter = itertools.count()
 
+        for s in specs:
+            print('setup', s.name, s.namespace)
         # preliminary checks
         check_packages_exist(specs)
 
@@ -2229,6 +2243,8 @@ class SpackSolverSetup(object):
         self.possible_compilers = self.generate_possible_compilers(specs)
 
         self.gen.h1("Concrete input spec definitions")
+        for s in specs:
+            print('setup 2', s.name, s.namespace)
         self.define_concrete_input_specs(specs, possible)
 
         if reuse:
@@ -2295,6 +2311,7 @@ class SpackSolverSetup(object):
 
     def literal_specs(self, specs):
         for idx, spec in enumerate(specs):
+            print(f'literal {spec.name} - {spec.namespace}')
             self.gen.h2("Spec: %s" % str(spec))
             self.gen.fact(fn.literal(idx))
 
@@ -2595,10 +2612,12 @@ class SpecBuilder(object):
         # Functions don't seem to be in particular order in output.  Sort
         # them here so that directives that build objects (like node and
         # node_compiler) are called in the right order.
+        print('building specs')
         self.function_tuples = sorted(set(function_tuples), key=self.sort_fn)
 
         self._specs = {}
         for name, args in self.function_tuples:
+            print(name)
             if SpecBuilder.ignored_attributes.match(name):
                 continue
 
@@ -2632,15 +2651,18 @@ class SpecBuilder(object):
                     if name != "node_flag_source":
                         continue
 
+            print(f'action {action} on {args}')
             action(*args)
 
         # namespace assignment is done after the fact, as it is not
         # currently part of the solve
         for spec in self._specs.values():
             if spec.namespace:
+                print(f'{spec.name} with namespace {spec.namespace}')
                 continue
             repo = spack.repo.path.repo_for_pkg(spec)
             spec.namespace = repo.namespace
+            print(f'changed {spec.name} to namespace {spec.namespace}')
 
         # fix flags after all specs are constructed
         self.reorder_flags()
@@ -2778,6 +2800,8 @@ class Solver(object):
         reusable_specs.extend(self._reusable_specs(specs))
         setup = SpackSolverSetup(tests=tests)
         output = OutputConfiguration(timers=timers, stats=stats, out=out, setup_only=setup_only)
+        for s in specs:
+            print(s.name, s.namespace)
         result, _, _ = self.driver.solve(setup, specs, reuse=reusable_specs, output=output)
         return result
 

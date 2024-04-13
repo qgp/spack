@@ -106,9 +106,13 @@ def spec(parser, args):
 
     # Use command line specified specs, otherwise try to use environment specs.
     if args.specs:
+        print(args.specs)
         input_specs = spack.cmd.parse_specs(args.specs)
+        print('input', input_specs)
         concretized_specs = spack.cmd.parse_specs(args.specs, concretize=True)
+        print('concr', concretized_specs)
         specs = list(zip(input_specs, concretized_specs))
+        print(specs)
     else:
         env = ev.active_environment()
         if env:

@@ -215,11 +215,16 @@ def parse_specs(args, **kwargs):
 
     try:
         specs = spack.parser.parse(sargs)
+        print(1, specs)
         for spec in specs:
+            if spec.namespace:
+                print(spec.name, spec.namespace)
             if concretize:
                 spec.concretize(tests=tests)  # implies normalize
             elif normalize:
                 spec.normalize(tests=tests)
+            if spec.namespace:
+                print(spec.name, spec.namespace)
         return specs
 
     except spack.error.SpecError as e:
